@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background: #f2f2f2;
+      }
+
+      #loading {
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+
+      #showMoreBtn {
+        margin-top: 10px;
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+
+      #searchBox {
+        padding: 6px;
+        width: 300px;
+        font-size: 14px;
+      }
+
+      #formSection {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #ddd;
+      }
+
+      #formSection button {
+        padding: 10px 20px;
+        font-size: 14px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+
+      #formSection button:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Material Library-SBD DISH & KASA</h2>
+
+    <div id="loading">Loading materials...</div>
+
+    <input type="text" id="searchBox" placeholder="Search materials..." onkeyup="filterTable()">
+    <br><br>
+
+    <table id="materialTable">
+      <thead>
+        <tr>
+          <th>Material</th>
+          <th>Type</th>
+          <th>Young's Modulus (MPa)</th>
+          <th>Poisson's Ratio</th>
+          <th>Density (kg/m³)</th>
+          <th>Source / Standards</th>
+          <th>Last updated by</th>
+          <th>Stress-strain curve</th>
+          <th>File</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button id="showMoreBtn" style="display:none;" onclick="showMore()">Show More</button>
+
+    <div id="formSection">
+      <h3>Submit New Material</h3>
+      <p>If you'd like to contribute a new material to the library, please fill out the form below:</p>
+      <a href="https://docs.google.com/forms/d/e/<https://docs.google.com/forms/d/1bpqa281EuSAKSj3I8st5yHd-GWrekVWiVUGe4psM5jQ/edit>/viewform" target="_blank">
+        <button>Submit Material</button>
+      </a>
+    </div>
+
+    <script>
+      let allData = [];
+      let visibleCount = 10;
+
+      google.script.run.withSuccessHandler(renderTable).getMaterials();
+
+      function renderTable(data) {
+        document.getElementById("loading").style.display = "none";
+        allData = data;
+        renderRows(visibleCount);
+        if (data.length > visibleCount) {
+          document.getElementById("showMoreBtn").style.display = "block";
+        }
+      }
+
+      function renderRows(count) {
+        const tbody = document.querySelector("#materialTable tbody");
+        tbody.innerHTML = "";
+        const toShow = allData.slice(0, count);
+        toShow.forEach(row => tbody.appendChild(createRow(row)));
+      }
+
+      function showMore() {
+        visibleCount += 10;
+        renderRows(visibleCount);
+        if (visibleCount >= allData.length) {
+          document.getElementById("showMoreBtn").style.display = "none";
+        }
+      }
+
+      function createRow(row) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row["Material"] || ""}</td>
+          <td>${row["Type"] || ""}</td>
+          <td>${row["Young's Modulus (MPa)"] || ""}</td>
+          <td>${row["Poisson's Ratio"] || ""}</td>
+          <td>${row["Density (kg/m³)"] || ""}</td>
+          <td>${row["Source / Standards"] || ""}</td>
+          <td>${row["Last updated by"] || ""}</td>
+          <td><a href="${row["Stress-strain curve"] || "#"}" target="_blank">View Curve</a></td>
+          <td><a href="${row["File Link"] || "#"}" target="_blank">Download</a></td>
+        `;
+        return tr;
+      }
+
+      function filterTable() {
+        let input = document.getElementById("searchBox").value.toLowerCase();
+        const tbody = document.querySelector("#materialTable tbody");
+        tbody.innerHTML = "";
+
+        const filtered = allData.filter(row =>
+          Object.values(row).some(value =>
+            String(value).toLowerCase().includes(input)
+          )
+        );
+
+        filtered.forEach(row => tbody.appendChild(createRow(row)));
+        document.getElementById("showMoreBtn").style.display = "none";
+      }
+    </script>
+  </body>
+</html>
+
+
+
